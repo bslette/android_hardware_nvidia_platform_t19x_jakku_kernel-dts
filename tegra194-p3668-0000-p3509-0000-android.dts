@@ -3,6 +3,31 @@
 / {
 	nvidia,dtsfilename = __FILE__;
 
+	/*
+	 * tegra194-pwm-fan.dtsi carries cooling-levels for the AGX Xavier fan, whose PWM is
+	 * inverted (255 = stopped). The p3509 carrier drives a non-inverted fan on tegra_pwm6, so the
+	 * mainline pwm-fan driver ran the fan at 100% duty in cooling state 0 (idle) and stopped it
+	 * from state 3 up. Use the p3509 active_pwm values (ascending) as cooling-levels.
+	 */
+	pwm-fan {
+		profiles {
+			quiet {
+				cooling-levels = <0 130 160 200 255 255 255 255 255 255>;
+			};
+			cool {
+				cooling-levels = <0 140 170 200 255 255 255 255 255 255>;
+			};
+		};
+	};
+
+	/*
+	 * L4T enables this from the "enable-denver-wdt" odm-data overlay, which is not applied on
+	 * this Android boot path. Without it /dev/watchdog is missing and watchdogd restarts every 5 s.
+	 */
+	watchdog@30c0000 {
+		status = "okay";
+	};
+
 	firmware {
 		android {
 			compatible = "android,firmware";
